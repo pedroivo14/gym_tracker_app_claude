@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f0f0f">
+<title>Treino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #191919;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --accent: #e8ff47;
+    --accent2: #ff4757;
+    --text: #f0f0f0;
+    --muted: #888;
+    --radius: 14px;
+    --tab-h: 62px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .app-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  /* ── GYM SELECTOR ── */
+  .gym-selector-wrap {
+    flex: 1;
+    max-width: 200px;
+    position: relative;
+  }
+
+  .gym-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 32px 8px 12px;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .gym-select:focus { border-color: var(--accent); }
+  .gym-selector-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 12px;
+    pointer-events: none;
+  }
+
+  .gym-manage-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all .2s;
+  }
+  .gym-manage-btn:active { background: var(--surface2); color: var(--text); }
+
+  /* ── SERIES TABS ── */
+  .series-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 4px;
+    position: sticky;
+    top: 67px;
+    z-index: 99;
+  }
+
+  .series-tab {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color .2s, border-color .2s;
+    user-select: none;
+    position: relative;
+  }
+  .series-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ── CONTENT ── */
+  .content {
+    padding: 16px 14px 100px;
+  }
+
+  .series-panel { display: none; }
+  .series-panel.active { display: block; }
+
+  /* ── EXERCISE CARD ── */
+  .exercise-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .exercise-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 14px 12px;
+    animation: slideIn .25s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .exercise-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .exercise-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--accent);
+    line-height: 1;
+    min-width: 28px;
+    padding-top: 2px;
+  }
+
+  .exercise-name-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 2px 0 4px;
+    outline: none;
+    transition: border-color .2s;
+    min-width: 0;
+  }
+  .exercise-name-input:focus { border-bottom-color: var(--accent); }
+  .exercise-name-input::placeholder { color: var(--muted); font-weight: 400; }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 2px 4px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color .2s;
+  }
+  .delete-btn:active { color: var(--accent2); }
+
+  /* ── WEIGHT ROW ── */
+  .weight-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .weight-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .weight-control {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .weight-btn {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 600;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+    flex-shrink: 0;
+  }
+  .weight-btn:active { background: var(--border); }
+
+  .weight-input {
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+    width: 54px;
+    text-align: center;
+    outline: none;
+    padding: 0;
+    -moz-appearance: textfield;
+  }
+  .weight-input::-webkit-outer-spin-button,
+  .weight-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .weight-unit {
+    font-size: 12px;
+    color: var(--muted);
+    padding-right: 10px;
+    font-weight: 500;
+  }
+
+  .sets-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .sets-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    width: 54px;
+    text-align: center;
+    padding: 6px 4px;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+  .sets-input::-webkit-outer-spin-button,
+  .sets-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .sets-input:focus { border-color: var(--accent); }
+
+  /* ── ADD EXERCISE ── */
+  .add-exercise-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 14px;
+    padding: 13px;
+    background: transparent;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .add-exercise-btn:active { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,.04); }
+
+  /* ── SERIES HEADER ── */
+  .series-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .series-title-wrap { display: flex; align-items: center; gap: 10px; }
+
+  .series-big-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: var(--text);
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .series-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.75);
+    z-index: 200;
+    backdrop-filter: blur(4px);
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px 22px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%;
+    max-height: 80dvh;
+    overflow-y: auto;
+    animation: slideUp .3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(60px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 1.5px;
+    margin-bottom: 18px;
+    color: var(--accent);
+  }
+
+  .modal-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+    margin-bottom: 10px;
+    transition: border-color .2s;
+  }
+  .modal-input:focus { border-color: var(--accent); }
+
+  .gym-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .gym-item:active { border-color: var(--accent); }
+  .gym-item.selected { border-color: var(--accent); }
+  .gym-item-name { font-size: 14px; font-weight: 500; }
+  .gym-item-delete { color: var(--muted); font-size: 18px; padding: 4px 6px; cursor: pointer; }
+  .gym-item-delete:active { color: var(--accent2); }
+
+  .modal-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    margin-top: 4px;
+    transition: opacity .2s;
+  }
+  .modal-btn:active { opacity: .8; }
+  .modal-btn-primary { background: var(--accent); color: #0f0f0f; }
+  .modal-btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); margin-top: 10px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    opacity: 0;
+    transition: all .3s;
+    z-index: 300;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="app-title">TREINO</div>
+  <div class="gym-selector-wrap">
+    <select class="gym-select" id="gymSelect"></select>
+  </div>
+  <button class="gym-manage-btn" onclick="openGymModal()" title="Gerenciar academias">⚙</button>
+</div>
+
+<!-- SERIES TABS -->
+<div class="series-tabs">
+  <div class="series-tab active" onclick="switchSeries(0)" id="tab0">SÉRIE A</div>
+  <div class="series-tab" onclick="switchSeries(1)" id="tab1">SÉRIE B</div>
+  <div class="series-tab" onclick="switchSeries(2)" id="tab2">SÉRIE C</div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+  <div id="panel0" class="series-panel active"></div>
+  <div id="panel1" class="series-panel"></div>
+  <div id="panel2" class="series-panel"></div>
+</div>
+
+<!-- GYM MODAL -->
+<div class="modal-overlay" id="gymModal" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">ACADEMIAS</div>
+    <div id="gymList"></div>
+    <input class="modal-input" id="newGymInput" placeholder="Nome da academia..." maxlength="40">
+    <button class="modal-btn modal-btn-primary" onclick="addGym()">Adicionar</button>
+    <button class="modal-btn modal-btn-ghost" onclick="closeGymModal()">Fechar</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+const SERIES_LABELS = ['A','B','C'];
+const KEY = 'treinoApp_v3';
+
+let state = {
+  gyms: ['Academia 1'],
+  currentGym: 'Academia 1',
+  currentSeries: 0,
+  series: [
+    { label: 'A', exercises: [] },
+    { label: 'B', exercises: [] },
+    { label: 'C', exercises: [] },
+  ]
+};
+
+// exercises[i] = { id, name, sets, weights: { [gymName]: number } }
+
+function load() {
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved) state = JSON.parse(saved);
+  } catch(e) {}
+}
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+
+// ── CURRENT GYM WEIGHT ────────────────────────────────────────────────────
+function getWeight(ex) {
+  return (ex.weights && ex.weights[state.currentGym]) ?? 0;
+}
+function setWeight(ex, val) {
+  if (!ex.weights) ex.weights = {};
+  ex.weights[state.currentGym] = val;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderGymSelect();
+  for (let i = 0; i < 3; i++) renderPanel(i);
+  document.querySelectorAll('.series-tab').forEach((t,i) => {
+    t.classList.toggle('active', i === state.currentSeries);
+  });
+  document.querySelectorAll('.series-panel').forEach((p,i) => {
+    p.classList.toggle('active', i === state.currentSeries);
+  });
+}
+
+function renderGymSelect() {
+  const sel = document.getElementById('gymSelect');
+  sel.innerHTML = '';
+  state.gyms.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g;
+    opt.textContent = g;
+    if (g === state.currentGym) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function renderPanel(si) {
+  const panel = document.getElementById('panel' + si);
+  const ser = state.series[si];
+  const exList = ser.exercises;
+
+  let html = `<div class="series-header">
+    <div class="series-title-wrap">
+      <div class="series-big-label">SÉRIE ${ser.label}</div>
+    </div>
+    <div class="series-subtitle">${exList.length} exercício${exList.length !== 1 ? 's' : ''}</div>
+  </div>
+  <div class="exercise-list" id="exList${si}">`;
+
+  exList.forEach((ex, idx) => {
+    const w = getWeight(ex);
+    html += `
+    <div class="exercise-card" id="card_${ex.id}">
+      <div class="exercise-header">
+        <div class="exercise-num">${idx+1}</div>
+        <input class="exercise-name-input" 
+          value="${escHtml(ex.name)}" 
+          placeholder="Nome do exercício"
+          onchange="updateName(${si},${idx},this.value)"
+          oninput="updateName(${si},${idx},this.value)">
+        <button class="delete-btn" onclick="deleteEx(${si},${idx})">✕</button>
+      </div>
+      <div class="weight-row">
+        <span class="weight-label">Peso</span>
+        <div class="weight-control">
+          <button class="weight-btn" onclick="changeWeight(${si},${idx},-1.25)">−</button>
+          <input class="weight-input" type="number" 
+            value="${w}" 
+            onchange="updateWeight(${si},${idx},this.value)"
+            oninput="updateWeight(${si},${idx},this.value)">
+          <span class="weight-unit">kg</span>
+          <button class="weight-btn" onclick="changeWeight(${si},${idx},1.25)">+</button>
+        </div>
+        <span class="sets-label">Séries</span>
+        <input class="sets-input" type="number" min="1" max="20"
+          value="${ex.sets || 3}"
+          onchange="updateSets(${si},${idx},this.value)"
+          oninput="updateSets(${si},${idx},this.value)">
+      </div>
+    </div>`;
+  });
+
+  html += `</div>
+  <button class="add-exercise-btn" onclick="addEx(${si})">
+    <span style="font-size:20px;line-height:1">+</span> Adicionar exercício
+  </button>`;
+
+  panel.innerHTML = html;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────
+function switchSeries(i) {
+  state.currentSeries = i;
+  save();
+  renderAll();
+}
+
+function addEx(si) {
+  state.series[si].exercises.push({ id: genId(), name: '', sets: 3, weights: {} });
+  save();
+  renderPanel(si);
+  // focus new input
+  const inputs = document.querySelectorAll(`#exList${si} .exercise-name-input`);
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+
+function deleteEx(si, idx) {
+  if (!confirm('Remover este exercício?')) return;
+  state.series[si].exercises.splice(idx, 1);
+  save();
+  renderPanel(si);
+  showToast('Exercício removido');
+}
+
+function updateName(si, idx, val) {
+  state.series[si].exercises[idx].name = val;
+  save();
+}
+
+function updateWeight(si, idx, val) {
+  const ex = state.series[si].exercises[idx];
+  const n = parseFloat(val) || 0;
+  setWeight(ex, Math.max(0, n));
+  save();
+}
+
+function changeWeight(si, idx, delta) {
+  const ex = state.series[si].exercises[idx];
+  const current = getWeight(ex);
+  const next = Math.max(0, Math.round((current + delta) * 100) / 100);
+  setWeight(ex, next);
+  save();
+  // update input directly
+  const card = document.getElementById('card_' + ex.id);
+  if (card) {
+    const inp = card.querySelector('.weight-input');
+    if (inp) inp.value = next;
+  }
+}
+
+function updateSets(si, idx, val) {
+  state.series[si].exercises[idx].sets = parseInt(val) || 3;
+  save();
+}
+
+// ── GYM ───────────────────────────────────────────────────────────────────
+document.getElementById('gymSelect').addEventListener('change', function() {
+  state.currentGym = this.value;
+  save();
+  renderAll();
+});
+
+function openGymModal() {
+  renderGymList();
+  document.getElementById('gymModal').classList.add('open');
+  document.getElementById('newGymInput').value = '';
+}
+
+function closeGymModal() {
+  document.getElementById('gymModal').classList.remove('open');
+}
+
+function handleOverlayClick(e) {
+  if (e.target === e.currentTarget) closeGymModal();
+}
+
+function renderGymList() {
+  const list = document.getElementById('gymList');
+  if (!state.gyms.length) { list.innerHTML = '<p style="color:var(--muted);font-size:13px;margin-bottom:14px">Nenhuma academia cadastrada</p>'; return; }
+  list.innerHTML = state.gyms.map((g,i) => `
+    <div class="gym-item ${g === state.currentGym ? 'selected' : ''}" onclick="selectGym('${escHtml(g)}')">
+      <span class="gym-item-name">${escHtml(g)}</span>
+      <span class="gym-item-delete" onclick="event.stopPropagation();removeGym(${i})">🗑</span>
+    </div>`).join('');
+}
+
+function selectGym(name) {
+  state.currentGym = name;
+  save();
+  renderAll();
+  renderGymList();
+  showToast(`Academia: ${name}`);
+}
+
+function addGym() {
+  const inp = document.getElementById('newGymInput');
+  const name = inp.value.trim();
+  if (!name) return;
+  if (state.gyms.includes(name)) { showToast('Academia já existe'); return; }
+  state.gyms.push(name);
+  state.currentGym = name;
+  save();
+  renderAll();
+  renderGymList();
+  inp.value = '';
+  showToast(`"${name}" adicionada!`);
+}
+
+function removeGym(i) {
+  if (state.gyms.length === 1) { showToast('Precisa ter ao menos uma academia'); return; }
+  const removed = state.gyms[i];
+  state.gyms.splice(i, 1);
+  if (state.currentGym === removed) state.currentGym = state.gyms[0];
+  save();
+  renderAll();
+  renderGymList();
+}
+
+document.getElementById('newGymInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addGym();
+});
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+load();
+renderAll();
+</script>
+</body>
+</html>
