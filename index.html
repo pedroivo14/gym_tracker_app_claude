@@ -302,6 +302,29 @@
   .sets-input::-webkit-inner-spin-button { -webkit-appearance: none; }
   .sets-input:focus { border-color: var(--accent); }
 
+  /* ── NOTES ── */
+  .notes-row {
+    margin-top: 10px;
+  }
+  .notes-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    padding: 7px 10px;
+    outline: none;
+    resize: none;
+    min-height: 36px;
+    line-height: 1.5;
+    transition: border-color .2s;
+  }
+  .notes-input:focus { border-color: var(--accent); }
+  .notes-input::placeholder { color: var(--muted); }
+
   /* ── ADD EXERCISE ── */
   .add-exercise-btn {
     display: flex;
@@ -518,12 +541,21 @@ let state = {
   ]
 };
 
-// exercises[i] = { id, name, sets, weights: { [gymName]: number } }
+// exercises[i] = { id, name, sets, reps, weights: { [gymName]: number } }
 
 function load() {
   try {
     const saved = localStorage.getItem(KEY);
-    if (saved) state = JSON.parse(saved);
+    if (saved) {
+      state = JSON.parse(saved);
+      // Migração: garante que exercícios antigos tenham os campos novos
+      state.series.forEach(serie => {
+        serie.exercises.forEach(ex => {
+          if (ex.reps === undefined)  ex.reps  = 12;
+          if (ex.notes === undefined) ex.notes = {};
+        });
+      });
+    }
   } catch(e) {}
 }
 
@@ -540,6 +572,15 @@ function getWeight(ex) {
 function setWeight(ex, val) {
   if (!ex.weights) ex.weights = {};
   ex.weights[state.currentGym] = val;
+}
+
+// ── CURRENT GYM NOTES ────────────────────────────────────────────────────
+function getNotes(ex) {
+  return (ex.notes && ex.notes[state.currentGym]) ?? '';
+}
+function setNotes(ex, val) {
+  if (!ex.notes) ex.notes = {};
+  ex.notes[state.currentGym] = val;
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────
@@ -581,6 +622,7 @@ function renderPanel(si) {
 
   exList.forEach((ex, idx) => {
     const w = getWeight(ex);
+    const n = getNotes(ex);
     html += `
     <div class="exercise-card" id="card_${ex.id}">
       <div class="exercise-header">
@@ -608,6 +650,16 @@ function renderPanel(si) {
           value="${ex.sets || 3}"
           onchange="updateSets(${si},${idx},this.value)"
           oninput="updateSets(${si},${idx},this.value)">
+        <span class="sets-label">Repetições</span>
+        <input class="sets-input" type="number" min="1" max="100"
+          value="${ex.reps || 12}"
+          onchange="updateReps(${si},${idx},this.value)"
+          oninput="updateReps(${si},${idx},this.value)">
+      </div>
+      <div class="notes-row">
+        <textarea class="notes-input" rows="1" placeholder="Anotações..."
+          onchange="updateNotes(${si},${idx},this.value)"
+          oninput="updateNotes(${si},${idx},this.value)">${escHtml(n)}</textarea>
       </div>
     </div>`;
   });
@@ -632,7 +684,7 @@ function switchSeries(i) {
 }
 
 function addEx(si) {
-  state.series[si].exercises.push({ id: genId(), name: '', sets: 3, weights: {} });
+  state.series[si].exercises.push({ id: genId(), name: '', sets: 3, reps: 12, weights: {}, notes: {} });
   save();
   renderPanel(si);
   // focus new input
@@ -676,6 +728,16 @@ function changeWeight(si, idx, delta) {
 
 function updateSets(si, idx, val) {
   state.series[si].exercises[idx].sets = parseInt(val) || 3;
+  save();
+}
+
+function updateReps(si, idx, val) {
+  state.series[si].exercises[idx].reps = parseInt(val) || 12;
+  save();
+}
+
+function updateNotes(si, idx, val) {
+  setNotes(state.series[si].exercises[idx], String(val));
   save();
 }
 
